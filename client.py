@@ -1,7 +1,6 @@
-import socket
 import random
+import socket
 from threading import Thread
-from datetime import datetime
 from colorama import Fore, init
 
 # init colors, set the available colors and choose a random color for the client
@@ -15,9 +14,9 @@ client_color = random.choice(colors)
 
 
 # if the server is not on this machine, put the private (network) IP address (e.g. 192.168.1.2)
-SERVER_HOST = "127.0.0.1"  # server's IP address
+SERVER_HOST = "192.168.1.56"  # server's IP address
 SERVER_PORT = 50025  # server's port
-separator_token = "<SEP>"  # we will use this to separate the client name & message
+separator_token = "<SEP>"  # separates the client name & message
 
 name = input("Enter your name: ")  # ask for a name
 

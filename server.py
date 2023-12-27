@@ -2,7 +2,7 @@ import socket
 from threading import Thread
 
 # server's IP address
-SERVER_HOST = "127.0.0.1"
+SERVER_HOST = "192.168.1.56"
 SERVER_PORT = 50025  # port we want to use
 separator_token = "<SEP>"  # we will use this to separate the client name & message
 
@@ -32,20 +32,31 @@ def listen_for_client(cs):
 
         except Exception as e:
             # client no longer connected
-            # remove it from the set
             print(f"[!] Error: {e}")
-            del client_sockets[client_sockets.values().find(cs)]
 
         else:
             # if we received a message, replace the <SEP>
             # token with ": " for nice printing
             msg = msg.replace(separator_token, ": ")
 
+            to_send = msg.split(': ')[-1]
+            if len(to_send.split('@')) != 1:
+                send_to = to_send.split('@')[0]
+            else:
+                send_to = ''
+
             # iterate over all connected sockets
-            for sockets in client_sockets:
-                # отправляем сообщение всем клиентам
-                print(sockets)
-                client_socket.send(msg.encode())
+            if send_to:
+                try:
+                    print(send_to)
+                    client_sockets[send_to].send((msg.split(': ')[0] + ': ' + to_send.split('@')[1]).encode())
+                except KeyError:
+                    cs.send('Такого нет!!!'.encode())
+            else:
+                for sockets in client_sockets:
+                    # отправляем сообщение всем клиентам
+                    print(sockets)
+                    client_sockets[sockets].send(msg.encode())
 
 
 while True:
