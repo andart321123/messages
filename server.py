@@ -2,7 +2,7 @@ import socket
 from threading import Thread
 
 # server's IP address
-SERVER_HOST = "192.168.1.56"
+SERVER_HOST = "127.0.0.1"
 SERVER_PORT = 50025  # port we want to use
 separator_token = "<SEP>"  # we will use this to separate the client name & message
 
@@ -16,6 +16,23 @@ s.bind((SERVER_HOST, SERVER_PORT))  # bind the socket to the address we specifie
 s.listen(5)  # listen for upcoming connections
 
 print(f"[*] Listening as {SERVER_HOST}:{SERVER_PORT}")
+
+
+def control_thread(c_sockets: dict) -> None:
+    while 1:
+        command = input()
+        if command == 'list':
+            for i in c_sockets:
+                print(i)
+        elif 'del ' in command:
+            del_clients = command.split()[1:]
+            for i in del_clients:
+                c_sockets[i].close()
+                del c_sockets[i]
+        elif 'send ' in command:
+            text = command.split()[1:]
+            for name, client in c_sockets.items():
+                client.send(('SERVER: ' + ' '.join(text)).encode())
 
 
 def listen_for_client(cs):
@@ -33,6 +50,7 @@ def listen_for_client(cs):
         except Exception as e:
             # client no longer connected
             print(f"[!] Error: {e}")
+            break
 
         else:
             # if we received a message, replace the <SEP>
@@ -58,6 +76,10 @@ def listen_for_client(cs):
                     print(sockets)
                     client_sockets[sockets].send(msg.encode())
 
+
+control_th = Thread(target=control_thread, args=(client_sockets,))
+control_th.daemon = True
+control_th.start()
 
 while True:
     client_socket, client_address = s.accept()  # we keep listening for new connections all the time
