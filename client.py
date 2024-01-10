@@ -3,28 +3,23 @@ import socket
 from threading import Thread
 from colorama import Fore, init
 
-# init colors, set the available colors and choose a random color for the client
 init()
-colors = [Fore.BLUE, Fore.CYAN, Fore.GREEN, Fore.LIGHTBLACK_EX,
-          Fore.LIGHTBLUE_EX, Fore.LIGHTCYAN_EX, Fore.LIGHTGREEN_EX,
-          Fore.LIGHTMAGENTA_EX, Fore.LIGHTRED_EX, Fore.LIGHTWHITE_EX,
-          Fore.LIGHTYELLOW_EX, Fore.MAGENTA, Fore.RED, Fore.WHITE, Fore.YELLOW
-          ]
+colors = [Fore.RED, Fore.YELLOW, Fore.GREEN,
+          Fore.BLUE, Fore.CYAN, Fore.MAGENTA,
+          Fore.WHITE, Fore.BLACK]
 client_color = random.choice(colors)
 
+SERVER_HOST = "127.0.0.1"
+SERVER_PORT = 50025
+SEPARATOR_TOKEN = "<SEP>"  # separates the client name & message
+send_to = ''
 
-# if the server is not on this machine, put the private (network) IP address (e.g. 192.168.1.2)
-SERVER_HOST = "192.168.1.56"  # server's IP address
-SERVER_PORT = 50025  # server's port
-separator_token = "<SEP>"  # separates the client name & message
+name = input("Как тебя зовут? ")
 
-name = input("Enter your name: ")  # ask for a name
-
-# initialize TCP socket and connect to the server
 s = socket.socket()
-print(f"[*] Connecting to {SERVER_HOST}:{SERVER_PORT}...")
+print(f"[*] Подключение к {SERVER_HOST}:{SERVER_PORT}...")
 s.connect((SERVER_HOST, SERVER_PORT))
-print("[+] Connected.")
+print("[+] Подключено")
 
 s.send(name.encode())  # send the name to server
 
@@ -35,25 +30,36 @@ def listen_for_messages():
         print("\n" + message)
 
 
-# make a thread that listens for messages to this client & print them
+# listen for messages to this client & print them
 t = Thread(target=listen_for_messages)
-# make the thread daemon, so it ends whenever the main thread ends
 t.daemon = True
-# start the thread
 t.start()
 
 while True:
-    # input message we want to send to the server
     to_send = input()
 
-    # exit the program
-    if to_send == '/exit':
+    if to_send == '#exit':
         break
 
-    # add name and the color of the sender
-    to_send = f"{client_color}{name}{Fore.RESET}{separator_token}{to_send}"
-    # send the message
-    s.send(to_send.encode())
+    elif to_send == '#settings':
+        command = input('Настройки:\n1 - выбрать цвет\n2 - кому отправлять по умолчанию\nВвод - выход')
+        if command == '1':
+            num = 0
+            for color in colors:
+                print(num, f'{color}Текст{Fore.RESET}')
+                num += 1
+            new_color = input('Введите номер цвета, \'\' - отмена: ')
+            if new_color:
+                client_color = colors[int(new_color)]
+        elif command == '2':
+            s.send('#list'.encode())
+            send_to = input('Кому отправлять?') + '@'
 
-# close the socket and exit
+    else:
+        if '@' in to_send:
+            to_send = f'{client_color}{name}{Fore.RESET}{SEPARATOR_TOKEN}{to_send}'
+        else:
+            to_send = f'{client_color}{name}{Fore.RESET}{SEPARATOR_TOKEN}{send_to}{to_send}'
+        s.send(to_send.encode())
+
 s.close()
