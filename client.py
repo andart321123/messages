@@ -1,5 +1,6 @@
 import random
 import socket
+import os
 from threading import Thread
 from colorama import Fore, init
 
@@ -9,19 +10,25 @@ colors = [Fore.RED, Fore.YELLOW, Fore.GREEN,
           Fore.WHITE, Fore.BLACK]
 client_color = random.choice(colors)
 
-SERVER_HOST = "127.0.0.1"
-SERVER_PORT = 50025
-SEPARATOR_TOKEN = "<SEP>"  # separates the client name & message
-send_to = ''
+if not os.path.exists('ip.txt'):
+    SERVER_HOST = input('Введите ip сервера: ')
+    SERVER_PORT = input('Введите порт сервера: ')
+    NAME = input("Как тебя зовут? ")
+    with open('ip.txt', 'w', encoding='utf8') as f:
+        f.write(f'{SERVER_HOST}\n{SERVER_PORT}\n{NAME}')
+else:
+    with open('ip.txt', encoding='utf8') as f:
+        SERVER_HOST, SERVER_PORT, NAME = f.read().split('\n')
 
-name = input("Как тебя зовут? ")
+SEPARATOR_TOKEN = "<SEP>"  # separates the client NAME & message
+send_to = ''
 
 s = socket.socket()
 print(f"[*] Подключение к {SERVER_HOST}:{SERVER_PORT}...")
-s.connect((SERVER_HOST, SERVER_PORT))
+s.connect((SERVER_HOST, int(SERVER_PORT)))
 print("[+] Подключено")
 
-s.send(name.encode())  # send the name to server
+s.send(NAME.encode())  # send the NAME to server
 
 
 def listen_for_messages():
@@ -42,7 +49,7 @@ while True:
         break
 
     elif to_send == '#settings':
-        command = input('Настройки:\n1 - выбрать цвет\n2 - кому отправлять по умолчанию\nВвод - выход')
+        command = input('Настройки:\n1 - выбрать цвет\n2 - кому отправлять по умолчанию\n3 - выбрать ip и порт сервера\n4 - сменить имя\nВвод - выход')
         if command == '1':
             num = 0
             for color in colors:
@@ -54,12 +61,21 @@ while True:
         elif command == '2':
             s.send('#list'.encode())
             send_to = input('Кому отправлять?') + '@'
+        elif command == '3':
+            SERVER_HOST = input('Введите новый ip сервера: ')
+            SERVER_PORT = input('Введите новый порт сервера: ')
+            with open('ip.txt', 'w', encoding='utf8') as f:
+                f.write(f'{SERVER_HOST}\n{SERVER_PORT}\n{NAME}')
+        elif command == '4':
+            NAME = input("Как теперь тебя зовут? ")
+            with open('ip.txt', 'w', encoding='utf8') as f:
+                f.write(f'{SERVER_HOST}\n{SERVER_PORT}\n{NAME}')
 
     else:
         if '@' in to_send:
-            to_send = f'{client_color}{name}{Fore.RESET}{SEPARATOR_TOKEN}{to_send}'
+            to_send = f'{client_color}{NAME}{Fore.RESET}{SEPARATOR_TOKEN}{to_send}'
         else:
-            to_send = f'{client_color}{name}{Fore.RESET}{SEPARATOR_TOKEN}{send_to}{to_send}'
+            to_send = f'{client_color}{NAME}{Fore.RESET}{SEPARATOR_TOKEN}{send_to}{to_send}'
         s.send(to_send.encode())
 
 s.close()
