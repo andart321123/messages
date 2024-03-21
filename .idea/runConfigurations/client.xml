@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="client" type="PythonConfigurationType" factoryName="Python" singleton="false" nameIsGenerated="true">
+  <configuration default="false" name="client" type="PythonConfigurationType" factoryName="Python" focusToolWindowBeforeRun="true" singleton="false" nameIsGenerated="true">
     <module name="client and server" />
     <option name="ENV_FILES" value="" />
     <option name="INTERPRETER_OPTIONS" value="" />

@@ -1,4 +1,4 @@
-import random
+from random import choice
 import socket
 import os
 from threading import Thread
@@ -8,7 +8,7 @@ init()
 colors = [Fore.RED, Fore.YELLOW, Fore.GREEN,
           Fore.BLUE, Fore.CYAN, Fore.MAGENTA,
           Fore.WHITE, Fore.BLACK]
-client_color = random.choice(colors)
+client_color = choice(colors)
 
 if not os.path.exists('ip.txt'):
     SERVER_HOST = input('Введите ip сервера: ')
@@ -76,6 +76,6 @@ while True:
             to_send = f'{client_color}{NAME}{Fore.RESET}{SEPARATOR_TOKEN}{to_send}'
         else:
             to_send = f'{client_color}{NAME}{Fore.RESET}{SEPARATOR_TOKEN}{send_to}{to_send}'
-        s.send(to_send.encode())
+
 
 s.close()

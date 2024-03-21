@@ -1,3 +1,4 @@
+import pickle
 import socket
 from threading import Thread
 
@@ -42,7 +43,7 @@ def control_thread(c_sockets: dict) -> None:
                 client.send(('SERVER: ' + ' '.join(text)).encode())
 
 
-def listen_for_client(cs):
+def listen_for_client(cs, client_name):
     while True:
         try:
             msg = cs.recv(1024).decode()
@@ -50,9 +51,16 @@ def listen_for_client(cs):
 
         except Exception as e:
             print(f"[!] Ошибка: {e}")
+            print(f"[!!] Клиент {client_name} отключен из-за ошибки")
+            del client_sockets[client_name]
             return
 
         else:
+            if not msg:
+                del client_sockets[client_name]
+                print(f"[!] Клиент {client_name} отключен")
+                return
+
             msg = msg.replace(SEPARATOR_TOKEN, ": ")
 
             text_to_send = msg.split(': ')[-1]
@@ -96,6 +104,6 @@ while True:
     client_name = client_socket.recv(1024).decode()
     client_sockets[client_name] = client_socket
 
-    t = Thread(target=listen_for_client, args=(client_socket,))
+    t = Thread(target=listen_for_client, args=(client_socket, client_name))
     t.daemon = True
     t.start()
